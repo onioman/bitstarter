@@ -44,13 +44,23 @@ var loadChecks = function(checksfile) {
 	return JSON.parse(fs.readFileSync(checksfile));
 };
 
+var checkNode = function(node, html, out) {
+	// check whether the class is present and in the right place
+	out[node["class"]] = html.length > 0;
+	// check the children of this node
+	for(var ii in node["children"]) {
+		var child = node["children"][ii];
+		checkNode(child, html.children(child["class"]), out);
+	}	
+}
+
 var checkHtmlFile = function(htmlfile, checksfile) {
 	$ = cheerioHtmlFile(htmlfile);
-	var checks = loadChecks(checksfile).sort();
+	var checks = loadChecks(checksfile);
 	var out = {};
 	for(var ii in checks) {
-		var present = $(checks[ii]).length > 0;
-		out[checks[ii]] = present;
+		var root = checks[ii];
+		checkNode(root, $(root["class"]), out);
 	}
 	return out;
 };
